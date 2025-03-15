@@ -1,0 +1,6 @@
+data/
+__pycache__/
+wandb/
+combine_files.py
+everything_combined.py
+Jugend forscht Arbeit Landeswettbewerb.pdf
