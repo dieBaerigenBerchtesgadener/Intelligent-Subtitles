@@ -152,6 +152,7 @@ def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True):
             runtime = end_time - start_time
             status.update(label=f"Untertitel erfolgreich generiert in {runtime:.2f} Sekunden", state="complete", expanded=False)
 
+    torch.cuda.empty_cache()
     return df, srt_lines_in_memory
     
 def generate_subtitles(name, df, srt_lines_in_memory, english_level=0.0):

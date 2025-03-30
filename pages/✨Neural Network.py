@@ -10,6 +10,7 @@ from subtitle_generation import create_srt_file
 from preprocessing import read_srt_in_memory, extract_tokens_with_sentences
 import tempfile
 from shared import generate_subtitles, play_video
+from utils import cefr_levels  # Import the CEFR mapping
 
 # Modell laden (nur einmal beim Start der App)
 api = wandb.Api()
@@ -42,13 +43,35 @@ def main():
             st.markdown(f"<div style='display: flex; justify-content: space-between;'><span>Weniger Untertitel</span><span>Mehr Untertitel</span></div>", unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
 
+            col1, col2 = st.columns([1, 1])
+
+            with col1:
+                language_level = st.selectbox(
+                    "English level:",
+                    options=list(cefr_levels.keys()),
+                    index=None,
+                    placeholder="Select your English level",
+                    key='language_level_select',
+                    help="Not sure about your level? Take a test: https://test-english.com/level-test/"
+                )
+            
+            with col2:
+                audio_level = st.selectbox(
+                    "Audio level:",
+                    options=list(cefr_levels.keys()),
+                    index=None,
+                    placeholder="Select your Audio level",
+                    key='audio_level_select',
+                    help="Not sure about your listening level? Take a test: https://www.oxfordonlineenglish.com/english-level-test/listening"
+                )
+
             if st.button("Untertitel generieren"):
                 srt_lines_in_memory = read_srt_in_memory(original_srt)
-                df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], model, device, bias=bias)
+                df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], model, device, bias=bias, audio_level=audio_level, language_level=language_level)
                 df.to_csv(csv_file, index=False)
                 
                 # Generiere Untertitel in verschiedenen Sprachen
-                srt_files = generate_subtitles(name, df, srt_lines_in_memory, english_level=0.2)
+                srt_files = generate_subtitles(name, df, srt_lines_in_memory, english_level=(language_level-0.2))
                 st.success("Untertitel erfolgreich generiert!")
 
             # Video mit Untertiteln anzeigen

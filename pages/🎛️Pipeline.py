@@ -23,12 +23,38 @@ def main():
     # Add a session state variable for success/error messages
     if 'message' not in st.session_state:
         st.session_state.message = {"type": None, "text": None}
+    if 'language_level' not in st.session_state:
+        st.session_state.language_level = None
+    if 'audio_level' not in st.session_state:
+        st.session_state.audio_level = None
 
     option = st.radio("Wähle eine Option:", ["Lokale Dateien verwenden", "Dateien hochladen"], index=0)
     bias = st.slider("Bias", min_value=-3.0, max_value=3.0, value=0.0, step=0.1, format="%f", 
                     help="Der Bias wird vor der Anwendung der Sigma-Funktion auf die Vorhersagen angewendet. Dadurch kann die Anzahl der Untertitel nochmals angepasst werden.")
     st.markdown(f"<div style='display: flex; justify-content: space-between;'><span>Weniger Untertitel</span><span>Mehr Untertitel</span></div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1, 1])
+
+        with col1:
+            st.session_state.language_level = st.selectbox(
+                "English level:",
+                options=list(cefr_levels.keys()),
+                index=None,
+                placeholder="Select your English level",
+                key='language_level_select',
+                help="Not sure about your level? Take a test: https://test-english.com/level-test/"
+            )
+        
+        with col2:
+            st.session_state.audio_level = st.selectbox(
+                "Audio level:",
+                options=list(cefr_levels.keys()),
+                index=None,
+                placeholder="Select your Audio level",
+                key='audio_level_select',
+                help="Not sure about your listening level? Take a test: https://www.oxfordonlineenglish.com/english-level-test/listening"
+            )
 
     # Display any stored messages
     if st.session_state.message["type"] == "success":

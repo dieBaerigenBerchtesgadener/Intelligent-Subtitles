@@ -3,13 +3,12 @@ import pandas as pd
 import os
 import tempfile
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
-from shared import process_subtitles
 from utils import cefr_levels  # Import the CEFR mapping
 
 def main():
     # Set the page to wide mode
-    st.set_page_config(layout="wide", page_title="Create Dataset")
-    st.title("Create Dataset")
+    st.set_page_config(layout="wide", page_title="Edit Dataset")
+    st.title("Edit Dataset")
     
     # Initialize session state
     if 'full_df' not in st.session_state:
@@ -38,30 +37,42 @@ def main():
             st.session_state.audio_file = f"{name}.mp4"
 
         audio_file = f"{name}.mp4"
-        reference_file = f"{name}.srt"
+        csv_file = f"{name}.csv"
             
-        if os.path.exists(reference_file) and st.button("Run pipeline") and os.path.exists(reference_file):            
+        if os.path.exists(csv_file) and st.button("Load data") and os.path.exists(audio_file):
             try:
-                df, _ = process_subtitles(name, audio_file, reference_file, predict=False)
+                df = pd.read_csv(csv_file)
+                df['display'] = False
                 st.session_state.full_df = df.copy()
-                st.session_state.display_df = df[["word", "display"]].copy()
+                if 'display' in df.columns:
+                    st.session_state.display_df = df[["word", "display"]].copy()
+                else:
+                    st.session_state.display_df = df[["word"]].copy()
+                    st.session_state.display_df['display'] = True
             except Exception as e:
-                st.error(f"Error processing subtitles: {e}")
+                st.error(f"Error loading data: {e}")
     else:
         video_file = st.file_uploader("Upload video/audio:", type=["mp4", "mpeg", "wav", "mp3"])
-        srt_file = st.file_uploader("Upload SRT file:", type=["srt"])
+        csv_file = st.file_uploader("Upload CSV file:", type=["csv"])
         
-        if video_file and srt_file and st.button("Run pipeline"):
+        if video_file and csv_file and st.button("Load data"):
             with tempfile.NamedTemporaryFile(delete=False) as tmp_vid, \
-                 tempfile.NamedTemporaryFile(delete=False, suffix=".srt") as tmp_srt:
+                 tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp_csv:
                 
                 tmp_vid.write(video_file.getvalue())
-                tmp_srt.write(srt_file.getvalue())
+                tmp_csv.write(csv_file.getvalue())
                 
                 st.session_state.audio_file = tmp_vid.name
-                df, _ = process_subtitles("uploaded", tmp_vid.name, tmp_srt.name, predict=False)
-                st.session_state.full_df = df.copy()
-                st.session_state.display_df = df[["word", "display"]].copy()
+                try:
+                    df = pd.read_csv(tmp_csv.name)
+                    st.session_state.full_df = df.copy()
+                    if 'display' in df.columns:
+                        st.session_state.display_df = df[["word", "display"]].copy()
+                    else:
+                        st.session_state.display_df = df[["word"]].copy()
+                        st.session_state.display_df['display'] = True
+                except Exception as e:
+                    st.error(f"Error loading CSV: {e}")
 
     # Display and editing UI
     if not st.session_state.display_df.empty:
