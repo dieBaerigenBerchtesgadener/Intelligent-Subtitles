@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import wandb
 from types import SimpleNamespace
 import yaml
-import joblib
+from xgboost import XGBClassifier
 
 # Set random seeds
 torch.manual_seed(0)
@@ -517,22 +517,17 @@ def predict_with_bias(df, device, type="GB", bias=0.0, batch_size=64):
     :return: Liste der Vorhersagen."
     """
     if type=="GB":
-        name = "gradient_boosting_model"
+        name = "gradient_boosting_level"
         features = df[['audio_complexity', 'word_occurrence', 'word_complexity', 
                 'sentence_complexity', 'word_importance', 'speed',
                 'ambient_volume', 'speech_volume', 'frequency', 'audio_level', 'language_level']].values
 
-        model = joblib.load(f'{name}.pkl')
+        model = XGBClassifier()
+        model.load_model(f'{name}.json')
 
         predictions = model.predict(features)
-        
-        # Wahrscheinlichkeiten ermitteln (falls benötigt)
-        probabilities = model.predict_proba(features)[:,1]
-        
-        # Bias auf die Wahrscheinlichkeiten anwenden (falls gewünscht)
+        probabilities = model.predict_proba(features)[:, 1]
         biased_probabilities = probabilities + bias
-        
-        # Klassen basierend auf den biased Wahrscheinlichkeiten vorhersagen
         predictions = (biased_probabilities > 0.5).astype(int)
         
         return predictions
