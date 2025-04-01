@@ -5,10 +5,11 @@ from torch.utils.data import DataLoader, TensorDataset, WeightedRandomSampler
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score, classification_report, balanced_accuracy_score, roc_auc_score, recall_score, fbeta_score
-from sklearn.dummy import DummyClassifier
 import matplotlib.pyplot as plt
 import wandb
 from types import SimpleNamespace
+import yaml
+import joblib
 
 # Set random seeds
 torch.manual_seed(0)
@@ -496,12 +497,60 @@ def evaluate_model(model, val_loader, device, wandb_run_path = "/humorless5218-g
 
     return model, config
 
-def predict_with_bias(df, model, device, bias=0.0, batch_size=64):
-    predictions = []
+# Modell laden (nur einmal beim Start der App)
+#api = wandb.Api()
+#run = api.run("/humorless5218-gymnasium-berchtesgaden/Intelligent Subtitles Simple NN 5/swdvym3w")
+#wandb.config = SimpleNamespace(**run.config)
+#run.file("best_model.pth").download(replace=True)
+#model = BinaryClassifier(input_features=5, config=wandb.config).to(device)
+#model.load_state_dict(torch.load('best_model.pth', map_location=device))
+#model.eval()  # In den Evaluationsmodus wechseln
 
-    try:
-        features = df[['audio_complexity', 'word_complexity', 'sentence_complexity',
-                       'word_importance', 'word_occurrence']].astype('float32').values
+def predict_with_bias(df, device, type="GB", bias=0.0, batch_size=64):
+    """
+    Funktion zur Vorhersage mit Bias für Gradient Boosting.
+    
+    :param df: DataFrame mit den Features.
+    :param model: Geladenes Gradient Boosting Modell.
+    :param bias: Bias-Wert, der zu den Wahrscheinlichkeiten addiert wird.
+    :param batch_size: Batch-Größe für die Verarbeitung.
+    :return: Liste der Vorhersagen."
+    """
+    if type=="GB":
+        features = df[['audio_complexity', 'word_occurrence', 'word_complexity', 
+                'sentence_complexity', 'word_importance', 'speed',
+                'ambient_volume', 'speech_volume', 'frequency', 'audio_level', 'language_level']].values
+
+        model = joblib.load('gradient_boosting_model_level.pkl')
+
+        predictions = model.predict(features)
+        
+        # Wahrscheinlichkeiten ermitteln (falls benötigt)
+        probabilities = model.predict_proba(features)[:,1]
+        
+        # Bias auf die Wahrscheinlichkeiten anwenden (falls gewünscht)
+        biased_probabilities = probabilities + bias
+        
+        # Klassen basierend auf den biased Wahrscheinlichkeiten vorhersagen
+        predictions = (biased_probabilities > 0.5).astype(int)
+        
+        return predictions
+    
+    if type=="NN":
+        # Load configuration
+        with open("best_model1.yml", "r") as file:
+            config = yaml.safe_load(file)
+
+        config = SimpleNamespace(**config)
+
+        # Modell laden
+        model = BinaryClassifier(input_features=11, config=config).to(device)
+        model.load_state_dict(torch.load('best_model1.pth', map_location=device))
+        model.eval()
+
+        features = df[['audio_complexity', 'word_occurrence', 'word_complexity', 
+                'sentence_complexity', 'word_importance', 'speed',
+                'ambient_volume', 'speech_volume', 'frequency', 'audio_level', 'language_level']].astype('float32').values
         features = torch.tensor(features, dtype=torch.float32).to(device)
 
         with torch.no_grad():
@@ -512,7 +561,3 @@ def predict_with_bias(df, model, device, bias=0.0, batch_size=64):
                 predictions.extend((torch.sigmoid(outputs) > 0.5).cpu().numpy().flatten())
 
         return predictions
-
-    except Exception as e:
-        print(f"Fehler bei der Vorhersage: {e}")
-        return None

@@ -21,16 +21,7 @@ from pydub import AudioSegment
 import io
 import re
 
-# Modell laden (nur einmal beim Start der App)
-api = wandb.Api()
-run = api.run("/humorless5218-gymnasium-berchtesgaden/Intelligent Subtitles Simple NN 5/swdvym3w")
-wandb.config = SimpleNamespace(**run.config)
-run.file("best_model.pth").download(replace=True)
-model = BinaryClassifier(input_features=5, config=wandb.config).to(device)
-model.load_state_dict(torch.load('best_model.pth', map_location=device))
-model.eval()  # In den Evaluationsmodus wechseln
-
-def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True):
+def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True, audio_level=0.0, language_level=0.0):
     """
     Hauptfunktion zum Ausführen der Untertitel-Pipeline mit Status-Updates und DataFrame-Anzeige.
     """
@@ -138,7 +129,10 @@ def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True):
         # 6. Vorhersagen treffen
         with st.status("Treffe Vorhersagen...", expanded=True) as status:
             start_time = time.time()
-            df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], model, device, bias=bias)
+            # Set feature importance based on passed parameters
+            df['audio_level'] = audio_level
+            df['language_level'] = language_level
+            df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], device, bias=bias)
             end_time = time.time()
             runtime = end_time - start_time
             status.update(label=f"Vorhersagen erfolgreich getroffen in {runtime:.2f} Sekunden", state="complete", expanded=False)

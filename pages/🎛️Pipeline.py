@@ -5,8 +5,10 @@ import pandas as pd
 from st_aggrid import AgGrid
 import subprocess
 from shared import play_video, generate_subtitles, process_subtitles
+from utils import cefr_levels
 
 def main():
+    st.set_page_config(layout="wide")
     st.title("Pipeline")
     
     # Initialize session state variables
@@ -36,25 +38,25 @@ def main():
 
     col1, col2 = st.columns([1, 1])
 
-        with col1:
-            st.session_state.language_level = st.selectbox(
-                "English level:",
-                options=list(cefr_levels.keys()),
-                index=None,
-                placeholder="Select your English level",
-                key='language_level_select',
-                help="Not sure about your level? Take a test: https://test-english.com/level-test/"
-            )
+    with col1:
+        st.session_state.language_level = st.selectbox(
+            "English level:",
+            options=list(cefr_levels.keys()),
+            index=None,
+            placeholder="Select your English level",
+            key='language_level_select',
+            help="Not sure about your level? Take a test: https://test-english.com/level-test/"
+        )
         
-        with col2:
-            st.session_state.audio_level = st.selectbox(
-                "Audio level:",
-                options=list(cefr_levels.keys()),
-                index=None,
-                placeholder="Select your Audio level",
-                key='audio_level_select',
-                help="Not sure about your listening level? Take a test: https://www.oxfordonlineenglish.com/english-level-test/listening"
-            )
+    with col2:
+        st.session_state.audio_level = st.selectbox(
+            "Audio level:",
+            options=list(cefr_levels.keys()),
+            index=None,
+            placeholder="Select your Audio level",
+            key='audio_level_select',
+            help="Not sure about your listening level? Take a test: https://www.oxfordonlineenglish.com/english-level-test/listening"
+        )
 
     # Display any stored messages
     if st.session_state.message["type"] == "success":
@@ -77,7 +79,7 @@ def main():
             # Always show the button, regardless of whether subtitles have been generated
             if st.button("Untertitel generieren"):
                 try:
-                    df, srt_lines_in_memory = process_subtitles(name, audio_file, reference_file, bias)
+                    df, srt_lines_in_memory = process_subtitles(name, audio_file, reference_file, bias, audio_level=cefr_levels[st.session_state.audio_level], language_level=cefr_levels[st.session_state.language_level])
                     st.session_state.df = df
                     success_message = "Untertitel erfolgreich generiert!"
                     st.session_state.message = {"type": "success", "text": success_message}
@@ -86,7 +88,7 @@ def main():
                     df.to_csv(f"{name}.csv", index=False)
                     
                     # Generate different subtitle versions
-                    generate_subtitles(name, df, srt_lines_in_memory)
+                    generate_subtitles(name, df, srt_lines_in_memory, english_level=(cefr_levels[st.session_state.language_level]-0.2))
                     st.session_state.subtitles_generated = True
 
                 except Exception as e:
