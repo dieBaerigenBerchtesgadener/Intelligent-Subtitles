@@ -44,6 +44,7 @@ def main():
             try:
                 df, _ = process_subtitles(name, audio_file, reference_file, predict=False)
                 st.session_state.full_df = df.copy()
+                df.to_csv(name, index=False)
                 st.session_state.display_df = df[["word", "display"]].copy()
             except Exception as e:
                 st.error(f"Error processing subtitles: {e}")

@@ -2,7 +2,8 @@ import streamlit as st
 import os
 from shared import generate_subtitles, play_video
 
-def main():
+def main():    
+    st.set_page_config(layout="wide")
     st.title("Video Player")
 
     option = st.radio("Wähle eine Option:", ["Lokale Dateien verwenden", "Dateien hochladen"], index=0)

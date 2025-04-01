@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from model import predict_with_bias, BinaryClassifier, prepare_data
+from model import predict_with_bias
 from utils import device
 import os
 import torch
@@ -12,16 +12,8 @@ import tempfile
 from shared import generate_subtitles, play_video
 from utils import cefr_levels  # Import the CEFR mapping
 
-# Modell laden (nur einmal beim Start der App)
-api = wandb.Api()
-run = api.run("/humorless5218-gymnasium-berchtesgaden/Intelligent Subtitles Simple NN 5/swdvym3w")
-wandb.config = SimpleNamespace(**run.config)
-run.file("best_model.pth").download(replace=True)
-model = BinaryClassifier(input_features=5, config=wandb.config).to(device)
-model.load_state_dict(torch.load('best_model.pth', map_location=device))
-model.eval()  # In den Evaluationsmodus wechseln
-
 def main():
+    st.set_page_config(layout="wide")
     st.title("Neural Network")
 
     option = st.radio("Wähle eine Option:", ["Lokale Datei verwenden", "CSV-Datei hochladen"], index=0)
@@ -67,11 +59,13 @@ def main():
 
             if st.button("Untertitel generieren"):
                 srt_lines_in_memory = read_srt_in_memory(original_srt)
-                df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], model, device, bias=bias, audio_level=audio_level, language_level=language_level)
+                df['audio_level'] = cefr_levels[audio_level]
+                df['language_level'] = cefr_levels[language_level]
+                df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], device, bias=bias)
                 df.to_csv(csv_file, index=False)
                 
                 # Generiere Untertitel in verschiedenen Sprachen
-                srt_files = generate_subtitles(name, df, srt_lines_in_memory, english_level=(language_level-0.2))
+                srt_files = generate_subtitles(name, df, srt_lines_in_memory, english_level=(cefr_levels[language_level]-0.2))
                 st.success("Untertitel erfolgreich generiert!")
 
             # Video mit Untertiteln anzeigen
@@ -96,7 +90,7 @@ def main():
                     srt_lines_in_memory = read_srt_in_memory(original_srt)
                     
                     # Vorhersagen generieren
-                    df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], model, device, bias=bias)
+                    df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], device, bias=bias)
                     
                     # Temporärer Name für die Untertitel
                     temp_name = "temp_video"
