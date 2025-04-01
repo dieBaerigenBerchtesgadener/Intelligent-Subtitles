@@ -286,7 +286,7 @@ def play_video(name, video_file=None, uploaded_srt_files=None):
     # Spalte für Speaker Boost (Beta)
     col1, col2 = st.columns(2)
     with col1:
-            col3, col4 = st.columns([1, 1])
+            col3, col4 = st.columns([1, 3])
             with col3:
                 st.markdown('<div style="display: flex; align-items: center; margin-top: 8px;">Speaker Boost <span class="beta-badge">BETA</span></div>', unsafe_allow_html=True)
             with col4:
