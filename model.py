@@ -517,11 +517,12 @@ def predict_with_bias(df, device, type="GB", bias=0.0, batch_size=64):
     :return: Liste der Vorhersagen."
     """
     if type=="GB":
+        name = "gradient_boosting_model"
         features = df[['audio_complexity', 'word_occurrence', 'word_complexity', 
                 'sentence_complexity', 'word_importance', 'speed',
                 'ambient_volume', 'speech_volume', 'frequency', 'audio_level', 'language_level']].values
 
-        model = joblib.load('gradient_boosting_model_level.pkl')
+        model = joblib.load(f'{name}.pkl')
 
         predictions = model.predict(features)
         
@@ -537,22 +538,23 @@ def predict_with_bias(df, device, type="GB", bias=0.0, batch_size=64):
         return predictions
     
     if type=="NN":
+        name = "best_model"
         # Load configuration
-        with open("best_model1.yml", "r") as file:
+        with open(f"{name}.yml", "r") as file:
             config = yaml.safe_load(file)
 
         config = SimpleNamespace(**config)
 
         # Modell laden
         model = BinaryClassifier(input_features=11, config=config).to(device)
-        model.load_state_dict(torch.load('best_model1.pth', map_location=device))
+        model.load_state_dict(torch.load(f'{name}.pth', map_location=device))
         model.eval()
 
         features = df[['audio_complexity', 'word_occurrence', 'word_complexity', 
                 'sentence_complexity', 'word_importance', 'speed',
                 'ambient_volume', 'speech_volume', 'frequency', 'audio_level', 'language_level']].astype('float32').values
         features = torch.tensor(features, dtype=torch.float32).to(device)
-
+        predictions = []
         with torch.no_grad():
             for i in range(0, len(features), batch_size):
                 batch = features[i:i+batch_size]
