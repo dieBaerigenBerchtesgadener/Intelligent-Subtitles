@@ -1,5 +1,6 @@
 # Intelligent Subtitles 🎬
 
+--- Trainingsdaten stehen nicht auf dem Repository zur Verfügung
 A machine learning-driven system for dynamically adaptive subtitle display based on audio and textual complexity analysis.
 
 ## Project Overview
