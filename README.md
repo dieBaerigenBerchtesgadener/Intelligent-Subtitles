@@ -1,105 +1,74 @@
-# Intelligent Subtitles 🎬
+# Intelligent Subtitles
 
---- Trainingsdaten stehen nicht auf dem Repository zur Verfügung
-A machine learning-driven system for dynamically adaptive subtitle display based on audio and textual complexity analysis.
+This repository contains the code for "Intelligente Untertitel: Automatische Anpassung der Untertiteldarstellung basierend auf Audio- und Textverständlichkeit" - a system that dynamically displays subtitles based on audio and text comprehensibility factors.
 
-## Project Overview
+## Overview
 
-Intelligent Subtitles aims to solve a common problem when watching content in a foreign language: the trade-off between subtitle visibility and visual immersion. Instead of displaying all subtitles or none at all, this system dynamically decides when subtitles are necessary based on:
+The project addresses limitations of conventional subtitle systems by developing an adaptive approach that displays subtitles based on audio and text comprehensibility needs. The methodology combines nine carefully developed features with user preferences in a pipeline that uses an Extreme Gradient Boosting model for selective subtitle display.
 
-- **Audio complexity**: How clear is the speech?
-- **Word complexity**: How difficult are the individual words?
-- **Sentence complexity**: How complex is the overall sentence structure?
-- **Word importance**: How essential is each word to understanding the context?
-- **Word occurrence**: How frequently has this word appeared in the video?
-- **Speech rate**: How quickly are words being spoken?
-- **Speech volume**: How loud is the speech compared to average?
-- **Ambient volume**: How much background noise competes with speech?
+The quantitative evaluation shows promising results with an F2-score of 0.6122, a Balanced Accuracy of 0.8064, and an ROC-AUC value of 0.8927. The model demonstrates particular strength in suppressing unnecessary subtitles (precision of 0.97 for the "Do not display" class), but shows room for improvement in precision for the "Display" class (0.37).
 
 ## Features
 
-- **Adaptive subtitle display**: Shows subtitles only when they're likely needed
-- **Multi-language support**: English with German translations
-- **Neural network-based decision making**: Trained on user preferences
-- **Audio isolation**: Separates speech from background noise for better analysis
-- **Real-time processing**: Works with existing subtitle files
+The system analyzes nine key features:
 
-## Technical Implementation
+* Word complexity
+* Sentence complexity
+* Word importance
+* Word occurrence
+* Word familiarity
+* Audio complexity
+* Speaking speed
+* Ambient volume
+* Relative volume
 
-The pipeline consists of several key components:
+## Installation
 
-1. **Preprocessing**: Loads and cleans subtitle files
-2. **Audio analysis**: 
-   - Extracts speech uncertainty using Whisper ASR
-   - Measures speech rate (syllables/second)
-   - Analyzes speech volume and ambient noise ratio
-3. **Text analysis**:
-   - Evaluates word complexity using CEFR levels
-   - Measures sentence entropy using ModernBERT
-   - Calculates word importance via masked prediction
-   - Tracks word occurrence frequency
-4. **Neural network model**:
-   - Three-layer architecture (64-128-64 neurons)
-   - Trained with F2-score optimization (recall emphasis)
-   - Optional bias parameter for fine-tuning display ratio
+    # Clone the repository
+    git clone https://github.com/dieBaerigenBerchtesgadener/Intelligent-Subtitles.git
+    cd Intelligent-Subtitles
+    
+    # Install dependencies
+    pip install -r requirements.txt
 
-## Model Performance
+## Usage
 
-Current model metrics:
-- F1-Score: 0.3825
-- F2-Score: 0.5867
-- Balanced Accuracy: 0.8220
-- ROC-AUC: 0.8889
+### Web Interface
 
-The model demonstrates high recall (0.78) on subtitle display decisions, ensuring important subtitles are rarely missed, with improving precision (0.30) to reduce unnecessary displays.
+The project includes a Streamlit web interface that can be started with:
 
-## Getting Started
+    streamlit run 🏠Home.py
 
-### Prerequisites
+### Processing Videos
 
-- Python 3.8+
-- PyTorch
-- Transformers
-- CUDA-compatible GPU (recommended)
+To process a video with the system:
 
-### Installation
+1. Place your video file and its original subtitles in the `/data` folder
+2. Name your files consistently: `{name}.mp4` for the video and `{name}.srt` for the subtitles
+3. Run the application through the Streamlit interface or execute the notebook
 
-git clone https://github.com/dieBaerigenBerchtesgadener/IntelligentSubtitles.git
-cd IntelligentSubtitles
-pip install -r requirements.txt
+### Manual Execution
 
-### Usage
+You can manually run the code, including the training of the final model and evaluation, by executing:
 
-Example usage
-python main.py --video path/to/video.mp4 --subtitles path/to/subtitles.srt --bias 0.0
+    jupyter notebook main.ipynb
 
-## Project Structure
+## Note
 
-- `audio_complexity.py`: Audio analysis features
-- `feature_extraction.py`: Feature extraction pipeline
-- `filter_in_out.py`: Subtitle filtering utilities
-- `model.py`: Neural network implementation
-- `preprocessing.py`: Data preprocessing
-- `translation.py`: Subtitle translation functions
-- `subtitle_generation.py`: Subtitle output formatting
-- `utils.py`: Helper functions
+The training dataset is not included in this repository.
 
-## Future Work
+## Repository Structure
 
-- Improve precision for class 1 (display subtitles)
-- Optimize pipeline for speed and robustness
-- Expand training dataset with diverse audio and text comprehension levels
-- Develop personalization for individual users
+* `🏠Home.py`: Main Streamlit application entry point
+* `main.ipynb`: Jupyter notebook containing the complete pipeline, model training, and evaluation
+* `/data`: Directory for input videos and subtitle files
 
-## Author
+## Results
 
-- Kilian Kienast
+The evaluation on the test set yielded:
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- This project was developed as part of a Jugend forscht research project.
-- Special thanks to all who contributed to labeling the training data.
+* F2-Score: 0.6122
+* Balanced Accuracy: 0.8064
+* ROC-AUC: 0.8927
+* Precision (Do not display class): 0.97
+* Recall (Display class): 0.73
