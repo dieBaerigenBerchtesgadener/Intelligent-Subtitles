@@ -159,7 +159,7 @@ def generate_subtitles(name, df, srt_lines_in_memory, english_level=0.0):
             srt_lines=srt_lines_in_memory,
             df=df,
             new_srt_file=file_name,
-            original_timesteps=False,
+            original_timesteps=True,
             languages=lang.split('-'),
             english_level=english_level
         )
@@ -250,39 +250,6 @@ def play_video(name, video_file=None, uploaded_srt_files=None):
         st.error("Keine Videodatei gefunden.")
         return
 
-    # Konvertiere SRT-Dateien in VTT und erstelle track tags
-    subtitle_tracks = ""
-    subtitle_js = ""
-    for idx, (lang, file_path) in enumerate(srt_files.items()):
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                srt_content = f.read()
-            vtt_content = convert_srt_to_vtt(srt_content)
-            vtt_b64 = base64.b64encode(vtt_content.encode('utf-8')).decode('utf-8')
-            default_attr = ' default' if idx == 0 else ''
-            subtitle_tracks += f'<track kind="subtitles" label="{lang}" src="data:text/vtt;base64,{vtt_b64}"{default_attr}>\n'
-            if idx == 0:
-                subtitle_js += f"""
-                video.addEventListener('loadedmetadata', function() {{
-                    if (video.textTracks.length > {idx}) {{
-                        setTimeout(function() {{
-                            video.textTracks[{idx}].mode = 'showing';
-                        }}, 100);
-                    }}
-                }});
-                """
-        except Exception as e:
-            st.error(f"Error loading subtitle {lang}: {str(e)}")
-
-    # Lese und kodieren des Videos zu Base64
-    try:
-        with open(video_path, "rb") as f:
-            video_bytes = f.read()
-        video_b64 = base64.b64encode(video_bytes).decode("utf-8")
-    except Exception as e:
-        st.error(f"Error loading video: {str(e)}")
-        return
-
     # Spalte für Speaker Boost (Beta)
     col1, col2 = st.columns(2)
     with col1:
@@ -301,6 +268,38 @@ def play_video(name, video_file=None, uploaded_srt_files=None):
 
     # Falls Speaker Boost aktiviert ist, verarbeite die Audio-Dateien
     if speaker_boost:
+        # Konvertiere SRT-Dateien in VTT und erstelle track tags
+        subtitle_tracks = ""
+        subtitle_js = ""
+        for idx, (lang, file_path) in enumerate(srt_files.items()):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    srt_content = f.read()
+                vtt_content = convert_srt_to_vtt(srt_content)
+                vtt_b64 = base64.b64encode(vtt_content.encode('utf-8')).decode('utf-8')
+                default_attr = ' default' if idx == 0 else ''
+                subtitle_tracks += f'<track kind="subtitles" label="{lang}" src="data:text/vtt;base64,{vtt_b64}"{default_attr}>\n'
+                if idx == 0:
+                    subtitle_js += f"""
+                    video.addEventListener('loadedmetadata', function() {{
+                        if (video.textTracks.length > {idx}) {{
+                            setTimeout(function() {{
+                                video.textTracks[{idx}].mode = 'showing';
+                            }}, 100);
+                        }}
+                    }});
+                    """
+            except Exception as e:
+                st.error(f"Error loading subtitle {lang}: {str(e)}")
+
+        # Lese und kodieren des Videos zu Base64
+        try:
+            with open(video_path, "rb") as f:
+                video_bytes = f.read()
+            video_b64 = base64.b64encode(video_bytes).decode("utf-8")
+        except Exception as e:
+            st.error(f"Error loading video: {str(e)}")
+            return
         vocals_path = f"{name}_vocals.wav"
         no_vocals_path = f"{name}_no_vocals.wav"
         try:
@@ -345,49 +344,48 @@ def play_video(name, video_file=None, uploaded_srt_files=None):
                 }}
             }}, 500);
             """
+
+            # Erzeuge HTML-Code für Video, Untertitel und (optional) Audio
+            html_code = f"""
+            <html>
+            <head>
+                <style>
+                video {{
+                    width: 100%;
+                }}
+                audio {{
+                    display: none;
+                }}
+                ::cue {{
+                    background-color: rgba(0, 0, 0, 0.7);
+                    color: white;
+                    font-size: 1.2em;
+                }}
+                </style>
+            </head>
+            <body>
+                <video id="myVideo" controls {video_muted}>
+                    <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
+                    {subtitle_tracks}
+                    Your browser does not support the video tag.
+                </video>
+                {audio_html}
+                <script>
+                {audio_sync_js}
+                </script>
+            </body>
+            </html>
+            """
+
+            components.html(html_code, height=2000)
+
         except Exception as e:
             st.error(f"Error processing audio for Speaker Boost: {str(e)}")
             video_muted = ""
             audio_html = ""
             audio_sync_js = subtitle_js
     else:
-        video_muted = ""
-        audio_html = ""
-        audio_sync_js = subtitle_js
-
-    # Erzeuge HTML-Code für Video, Untertitel und (optional) Audio
-    html_code = f"""
-    <html>
-    <head>
-        <style>
-        video {{
-            width: 100%;
-        }}
-        audio {{
-            display: none;
-        }}
-        ::cue {{
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            font-size: 1.2em;
-        }}
-        </style>
-    </head>
-    <body>
-        <video id="myVideo" controls {video_muted}>
-            <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
-            {subtitle_tracks}
-            Your browser does not support the video tag.
-        </video>
-        {audio_html}
-        <script>
-        {audio_sync_js}
-        </script>
-    </body>
-    </html>
-    """
-
-    components.html(html_code, height=2000)
+        st.video(video_path, subtitles=srt_files)
 
     # Aufräumen temporärer Dateien
     for temp_file in temp_files:

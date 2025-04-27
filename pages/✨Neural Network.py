@@ -65,7 +65,7 @@ def main():
                 df.to_csv(csv_file, index=False)
                 
                 # Generiere Untertitel in verschiedenen Sprachen
-                srt_files = generate_subtitles(name, df, srt_lines_in_memory, english_level=(cefr_levels[language_level]-0.2))
+                srt_files = generate_subtitles(name, df, srt_lines_in_memory, english_level=(cefr_levels[language_level]-0.4))
                 st.success("Untertitel erfolgreich generiert!")
 
             # Video mit Untertiteln anzeigen

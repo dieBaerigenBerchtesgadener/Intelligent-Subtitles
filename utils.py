@@ -33,7 +33,9 @@ EXCLUDED_WORDS = [
     "ah-choo", "cough", "sneeze", "hick", "hiccup", "snore", "whaaat",
     "doh", "hmh", "pfft-pfft", "chatter", "rumble", "buzz", "mumble",
     "ooh-la-la", "ahem", "tut", "hrrmm", "grmph", "sigh", "gulp-gulp",
-    "oh-wow", "yeehaw", "oh-no", "ach", "achoo", "whoop", "zipp", "zzz", "so"
+    "oh-wow", "yeehaw", "oh-no", "ach", "achoo", "whoop", "zipp", "zzz", "so",
+    "mm-hmm", "uh-huh", "huhm", "huhmm", "huhm-huhm", "huhm-huh",
+    "huhm-huhm", "huhm-huhm-huhm", "huhm-huhm-huh", "huhm-huhm-huhm"
 ]
 # CEFR levels mapping
 cefr_levels = {

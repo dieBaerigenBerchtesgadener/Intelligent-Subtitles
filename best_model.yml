@@ -1,0 +1,24 @@
+ambient_volume: true
+audio_complexity: true
+audio_level: true
+batch_size: 512
+dropout_rate: 0.679141819818876
+early_stopping_patience: 20
+epochs: 200
+frequency: true
+hidden_layers:
+- 128
+- 64
+- 32
+language_level: true
+learning_rate: 0.009333186142476328
+loss_function: BCEWithLogits
+optimizer: AdamW
+sentence_complexity: true
+speech_volume: true
+speed: true
+weight_decay: 0.0467714646651116
+weighted_sampler: true
+word_complexity: true
+word_importance: true
+word_occurrence: true

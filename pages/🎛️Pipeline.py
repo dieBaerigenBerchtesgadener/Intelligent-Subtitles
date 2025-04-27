@@ -88,7 +88,7 @@ def main():
                     df.to_csv(f"{name}.csv", index=False)
                     
                     # Generate different subtitle versions
-                    generate_subtitles(name, df, srt_lines_in_memory, english_level=(cefr_levels[st.session_state.language_level]-0.2))
+                    generate_subtitles(name, df, srt_lines_in_memory, english_level=(cefr_levels[st.session_state.language_level]-0.4))
                     st.session_state.subtitles_generated = True
 
                 except Exception as e:
