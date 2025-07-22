@@ -24,6 +24,16 @@ The system analyzes nine key features:
 
 ## Installation
 
+First, install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) if you don't have Conda already:
+
+    # Download and install Miniconda (see official docs for latest version and platform-specific instructions)
+    # Example for Linux:
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh
+    # Follow the prompts to complete installation, then restart your terminal or run 'source ~/.bashrc'
+
+Then, set up the project environment:
+
     # Clone the repository
     git clone https://github.com/dieBaerigenBerchtesgadener/Intelligent-Subtitles.git
     cd Intelligent-Subtitles
