@@ -3,6 +3,8 @@ import torch
 from streamlit_pdf_viewer import pdf_viewer
 import reveal_slides as rs
 import streamlit.components.v1 as components
+from pathlib import Path
+import os
 
 # Fix for error
 torch.classes.__path__ = []
@@ -15,14 +17,14 @@ st.set_page_config(
 
 def main():
     st.title("Intelligente Untertitel")
-    st.video("data\\1.mp4", start_time=29, end_time=60)
-    st.video("data\\1.mp4", start_time=29, end_time=60, subtitles="data\\1.srt")
+    st.video(Path("data/1.mp4"), start_time=29, end_time=60)
+    st.video(Path("data/1.mp4"), start_time=29, end_time=60, subtitles=Path("data/1.srt"))
 
     #with open("presentation.html", "r") as file:
     #    content_markup = file.read()
     #components.html(content_markup, height=600, scrolling=True)
 
-    pdf_viewer("Jugend forscht Arbeit Landeswettbewerb.pdf", width="90%", height=2000)
+    #pdf_viewer(Path("Jugend forscht Arbeit Landeswettbewerb.pdf"), width="90%", height=2000)
 
 
 if __name__ == "__main__":

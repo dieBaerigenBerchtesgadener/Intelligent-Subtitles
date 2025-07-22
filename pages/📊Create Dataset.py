@@ -5,6 +5,7 @@ import tempfile
 from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 from shared import process_subtitles
 from utils import cefr_levels  # Import the CEFR mapping
+from pathlib import Path
 
 def main():
     # Set the page to wide mode

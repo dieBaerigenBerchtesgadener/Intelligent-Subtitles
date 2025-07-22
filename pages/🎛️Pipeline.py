@@ -30,10 +30,10 @@ def main():
     if 'audio_level' not in st.session_state:
         st.session_state.audio_level = None
 
-    option = st.radio("Wähle eine Option:", ["Lokale Dateien verwenden", "Dateien hochladen"], index=0)
+    option = st.radio("Choose an option:", ["Use local data", "Upload data"], index=0)
     bias = st.slider("Bias", min_value=-3.0, max_value=3.0, value=0.0, step=0.1, format="%f", 
                     help="Der Bias wird vor der Anwendung der Sigma-Funktion auf die Vorhersagen angewendet. Dadurch kann die Anzahl der Untertitel nochmals angepasst werden.")
-    st.markdown(f"<div style='display: flex; justify-content: space-between;'><span>Weniger Untertitel</span><span>Mehr Untertitel</span></div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='display: flex; justify-content: space-between;'><span>Fewer subtitles</span><span>More subtitles</span></div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
     col1, col2 = st.columns([1, 1])
@@ -42,7 +42,7 @@ def main():
         st.session_state.language_level = st.selectbox(
             "English level:",
             options=list(cefr_levels.keys()),
-            index=None,
+            index=4,
             placeholder="Select your English level",
             key='language_level_select',
             help="Not sure about your level? Take a test: https://test-english.com/level-test/"
@@ -52,7 +52,7 @@ def main():
         st.session_state.audio_level = st.selectbox(
             "Audio level:",
             options=list(cefr_levels.keys()),
-            index=None,
+            index=5,
             placeholder="Select your Audio level",
             key='audio_level_select',
             help="Not sure about your listening level? Take a test: https://www.oxfordonlineenglish.com/english-level-test/listening"
@@ -64,12 +64,13 @@ def main():
     elif st.session_state.message["type"] == "error":
         st.error(st.session_state.message["text"])
 
-    if option == "Lokale Dateien verwenden":
-        name = st.text_input("Name des Videos (ohne Dateiendung, z.B. boysS3E4):")
+    if option == "Use local data":
+        name = st.text_input("Name of the video (without file extension):")
         if not name:
             st.stop()
         else:
-            name = "data\\" + name
+            # name = "data\\" + name
+            name = os.path.join("data", name)
             st.session_state.name = name
 
         audio_file = f"{name}.mp4"
@@ -77,11 +78,11 @@ def main():
 
         if os.path.exists(audio_file) and os.path.exists(reference_file):
             # Always show the button, regardless of whether subtitles have been generated
-            if st.button("Untertitel generieren"):
+            if st.button("Generate subtitles"):
                 try:
                     df, srt_lines_in_memory = process_subtitles(name, audio_file, reference_file, bias, audio_level=cefr_levels[st.session_state.audio_level], language_level=cefr_levels[st.session_state.language_level])
                     st.session_state.df = df
-                    success_message = "Untertitel erfolgreich generiert!"
+                    success_message = "Subtitles successfully generated!"
                     st.session_state.message = {"type": "success", "text": success_message}
                     st.success(success_message)
 
@@ -123,7 +124,7 @@ def main():
             st.session_state.name = name
             
             # Always show the button
-            if st.button("Untertitel generieren"):
+            if st.button("Generate subtitles"):
                 # Reset file positions
                 st.session_state.uploaded_video.seek(0)
                 st.session_state.uploaded_srt_files[0].seek(0)
@@ -140,7 +141,7 @@ def main():
                     try:
                         df, srt_lines_in_memory = process_subtitles(name, audio_file, reference_file, bias)
                         st.session_state.df = df
-                        success_message = "Untertitel erfolgreich generiert!"
+                        success_message = "Subtitles successfully generated!"
                         st.session_state.message = {"type": "success", "text": success_message}
                         st.success(success_message)
 

@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 from shared import generate_subtitles, play_video
+from pathlib import Path
 
 def main():    
     st.set_page_config(layout="wide")

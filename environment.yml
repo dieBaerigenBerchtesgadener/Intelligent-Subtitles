@@ -1,0 +1,26 @@
+name: intelligent-subtitles
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - cudatoolkit
+  - cudnn
+  - numpy
+  - pandas
+  - matplotlib
+  - scipy
+  - conda-forge::transformers
+  - sentencepiece
+  - streamlit
+  - nltk
+  - datasets
+  - py-xgboost-gpu
+  - conda-forge::pydub
+  - pytorch-cuda=12.1
+  - torchaudio
+  - pytorch
+  - sympy
+  - conda-forge::uv
+  - conda-forge::sacremoses
+  - scikit-learn
+prefix: /home/kilian/miniconda3/envs/intelligent-subtitles

@@ -28,8 +28,9 @@ The system analyzes nine key features:
     git clone https://github.com/dieBaerigenBerchtesgadener/Intelligent-Subtitles.git
     cd Intelligent-Subtitles
     
-    # Install dependencies
-    pip install -r requirements.txt
+    # Using Conda (recommended)
+    conda env create -f environment.yml
+    conda activate intelligent-subtitles
 
 ## Usage
 

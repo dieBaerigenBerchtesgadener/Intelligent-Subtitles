@@ -328,6 +328,7 @@ class FeatureExtractor:
         vocals_audio = self.vocals_audio
         sr_vocals = self.sr_vocals
 
+        
         def calculate_segment_volume(audio, sr, start_time, end_time):
             start_sample = int(start_time * sr)
             end_sample = int(end_time * sr)

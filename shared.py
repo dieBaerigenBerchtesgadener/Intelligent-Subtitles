@@ -23,19 +23,19 @@ import re
 
 def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True, audio_level=0.0, language_level=0.0):
     """
-    Hauptfunktion zum Ausführen der Untertitel-Pipeline mit Status-Updates und DataFrame-Anzeige.
+    Main function to run the subtitle pipeline with status updates and DataFrame display.
     """
-    # 1. Daten einlesen und vorverarbeiten
-    with st.status("Lade SRT-Datei und extrahiere Tokens...", expanded=True) as status:
+    # 1. Read and preprocess data
+    with st.status("Loading SRT file and extracting tokens...", expanded=True) as status:
         start_time = time.time()
         srt_lines_in_memory = read_srt_in_memory(reference_file)
         original_tokens = extract_tokens_with_sentences(srt_lines_in_memory)
         end_time = time.time()
         runtime = end_time - start_time
-        status.update(label=f"SRT-Datei erfolgreich geladen und Tokens extrahiert in {runtime:.2f} Sekunden", state="complete", expanded=False)
+        status.update(label=f"SRT file successfully loaded and tokens extracted in {runtime:.2f} seconds", state="complete", expanded=False)
 
-    # 2. Audiokomplexität berechnen
-    with st.status("Berechne Audiokomplexität...", expanded=True) as status:
+    # 2. Calculate audio complexity
+    with st.status("Calculating audio complexity...", expanded=True) as status:
         start_time = time.time()
         audio_complexity_results = extract_complexity(audio_file, original_tokens, device=str(device), batch_size=16) # Device-String
         df = pd.DataFrame(audio_complexity_results)
@@ -43,9 +43,9 @@ def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True, 
         df['sentence'] = [token['sentence'] for token in original_tokens]
         end_time = time.time()
         runtime = end_time - start_time
-        status.update(label=f"Audiokomplexität erfolgreich berechnet in {runtime:.2f} Sekunden", state="complete", expanded=False)
+        status.update(label=f"Audio complexity successfully calculated in {runtime:.2f} seconds", state="complete", expanded=False)
 
-    with st.status("Isoliere Stimmen...", expanded=True) as status:
+    with st.status("Isolating voices...", expanded=True) as status:
         start_time = time.time()
         isolate_speech(audio_file, device=str(device))
         aligned_results = improve_timesteps(f"{name}_vocals.wav", df, device=str(device), batch_size=16)
@@ -53,10 +53,10 @@ def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True, 
         df['end_time'] = [result['end_time'] for result in aligned_results]
         end_time = time.time()
         runtime = end_time - start_time
-        status.update(label=f"Stimmen erfolgreich isoliert in {runtime:.2f} Sekunden", state="complete", expanded=False)
+        status.update(label=f"Voices successfully isolated in {runtime:.2f} seconds", state="complete", expanded=False)
 
-    # 3. Wörter filtern und markieren
-    with st.status("Filtere und markiere Wörter...", expanded=True) as status:
+    # 3. Filter and mark words
+    with st.status("Filtering and marking words...", expanded=True) as status:
         start_time = time.time()
         df['display'] = None
         df['set_manually'] = False
@@ -68,66 +68,66 @@ def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True, 
         df = mark_numbers_in_df(df)
         end_time = time.time()
         runtime = end_time - start_time
-        status.update(label=f"Wörter erfolgreich gefiltert und markiert in {runtime:.2f} Sekunden", state="complete", expanded=False)
+        status.update(label=f"Words successfully filtered and marked in {runtime:.2f} seconds", state="complete", expanded=False)
 
-    # 4. Übersetzung und Alignment
-    with st.status("Übersetze und aligniere Sätze...", expanded=True) as status:
+    # 4. Translation and alignment
+    with st.status("Translating and aligning sentences...", expanded=True) as status:
         start_time = time.time()
         translation_results = batch_translate_and_align(df, device=str(device)) 
         df_translations = pd.DataFrame(translation_results)
         df['translation'] = df_translations['german_translation']
         end_time = time.time()
         runtime = end_time - start_time
-        status.update(label=f"Sätze erfolgreich übersetzt und aligned in {runtime:.2f} Sekunden", state="complete", expanded=False)
+        status.update(label=f"Sentences successfully translated and aligned in {runtime:.2f} seconds", state="complete", expanded=False)
 
     # Initialize the FeatureExtractor with the device
     feature_extractor = FeatureExtractor(device=str(device))
 
-    # 5. Features extrahieren
-    with st.status("Extrahiere Features...", expanded=True) as status:
+    # 5. Extract features
+    with st.status("Extracting features...", expanded=True) as status:
         start_time = time.time()
         
         # Word occurrence
-        status.update(label="Berechne Wortvorkommen...", state="running", expanded=True)
+        status.update(label="Calculating word occurrence...", state="running", expanded=True)
         df.loc[df['process'], 'word_occurrence'] = df.loc[df['process'], 'word'].apply(feature_extractor.get_word_occurrence)
         
         # Word complexity
-        status.update(label="Berechne Wortkomplexität...", state="running", expanded=True)
+        status.update(label="Calculating word complexity...", state="running", expanded=True)
         df.loc[df['process'], 'word_complexity'] = df.loc[df['process'], 'word'].apply(feature_extractor.get_word_complexity)
         
         # Sentence complexity
-        status.update(label="Berechne Satzkomplexität...", state="running", expanded=True)
+        status.update(label="Calculating sentence complexity...", state="running", expanded=True)
         df_sentence_complexity = feature_extractor.get_sentence_complexity(df)
         df["sentence_complexity"] = df_sentence_complexity["sentence_complexity"]
 
         # Word importance
-        status.update(label="Berechne Wortwichtigkeit...", state="running", expanded=True)
+        status.update(label="Calculating word importance...", state="running", expanded=True)
         word_importances = feature_extractor.get_word_importance(df, batch_size=32)
         df["word_importance"] = word_importances
 
         # Speech speed
-        status.update(label="Berechne Sprechgeschwindigkeit...", state="running", expanded=True)
+        status.update(label="Calculating speech speed...", state="running", expanded=True)
         df = feature_extractor.get_sentence_speed(df)
 
         # Speech volume
-        status.update(label="Berechne Sprechlautstärke...", state="running", expanded=True)
+        status.update(label="Calculating speech volume...", state="running", expanded=True)
         df = feature_extractor.get_sentence_speech_volume(df, name)
 
         # Ambient volume
-        status.update(label="Berechne Umgebungslautstärke...", state="running", expanded=True)
+        status.update(label="Calculating ambient volume...", state="running", expanded=True)
         df = feature_extractor.get_word_ambient_volume(df, name)
 
         # Word frequency
-        status.update(label="Berechne Wortfrequenz...", state="running", expanded=True)
+        status.update(label="Calculating word frequency...", state="running", expanded=True)
         df = feature_extractor.get_word_frequency(df)
 
         end_time = time.time()
         runtime = end_time - start_time
-        status.update(label=f"Features erfolgreich extrahiert in {runtime:.2f} Sekunden", state="complete", expanded=False)
+        status.update(label=f"Features successfully extracted in {runtime:.2f} seconds", state="complete", expanded=False)
         
     if predict:
-        # 6. Vorhersagen treffen
-        with st.status("Treffe Vorhersagen...", expanded=True) as status:
+        # 6. Make predictions
+        with st.status("Making predictions...", expanded=True) as status:
             start_time = time.time()
             # Set feature importance based on passed parameters
             df['audio_level'] = audio_level
@@ -135,16 +135,16 @@ def process_subtitles(name, audio_file, reference_file, bias=0.0, predict=True, 
             df.loc[~df['set_manually'], 'display'] = predict_with_bias(df.loc[~df['set_manually']], device, bias=bias)
             end_time = time.time()
             runtime = end_time - start_time
-            status.update(label=f"Vorhersagen erfolgreich getroffen in {runtime:.2f} Sekunden", state="complete", expanded=False)
+            status.update(label=f"Predictions successfully made in {runtime:.2f} seconds", state="complete", expanded=False)
             df.to_csv(f'{name}.csv', index=False)
             
-        # 7. SRT generieren
-        with st.status("Generiere Untertitel...", expanded=True) as status:
+        # 7. Generate SRT
+        with st.status("Generating subtitles...", expanded=True) as status:
             start_time = time.time()
             generate_subtitles(name, df, srt_lines_in_memory)
             end_time = time.time()
             runtime = end_time - start_time
-            status.update(label=f"Untertitel erfolgreich generiert in {runtime:.2f} Sekunden", state="complete", expanded=False)
+            status.update(label=f"Subtitles successfully generated in {runtime:.2f} seconds", state="complete", expanded=False)
 
     torch.cuda.empty_cache()
     return df, srt_lines_in_memory
