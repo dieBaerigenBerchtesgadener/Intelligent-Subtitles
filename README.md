@@ -2,6 +2,10 @@
 
 This repository contains the code for "Intelligente Untertitel: Automatische Anpassung der Untertiteldarstellung basierend auf Audio- und Textverständlichkeit" - a system that dynamically displays subtitles based on audio and text comprehensibility factors.
 
+**Paper:**
+- [Deutsche Version (IntelligenteUntertitel.pdf)](IntelligenteUntertitel.pdf)
+- [English Version (IntelligentSubtitles.pdf)](IntelligentSubtitles.pdf)
+
 ## Overview
 
 The project addresses limitations of conventional subtitle systems by developing an adaptive approach that displays subtitles based on audio and text comprehensibility needs. The methodology combines nine carefully developed features with user preferences in a pipeline that uses an Extreme Gradient Boosting model for selective subtitle display.
